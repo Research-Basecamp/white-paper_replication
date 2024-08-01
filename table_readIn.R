@@ -1,7 +1,14 @@
-#replicate table and graphics
-library(ggthemes)
+#replicate table and graphics 2 and 3 from "Eternal Nightmares" report
 
-tab <- read_excel('2022_2023_ICE_quarterly_confinement_vulnerable.xlsx', sheet = 5)
+library(ggthemes)
+library(tidyverse)
+library(janitor)
+library(readxl)
+library(stringi)
+library(openxlsx)
+
+#Read in both ice and foia data
+ice <- read_excel('2022_2023_ICE_quarterly_confinement_vulnerable.xlsx', sheet = 5)
 df <- read_excel('./SRMS spreadsheet 9.1.2018 - 9.1.2023 Redacted.xlsx')
 
 #clean variables
@@ -14,6 +21,10 @@ df <- df |>
                             "WEBB COUNTY DETENTION CENTER (CCA) (TX)", Facility)) |>
   filter(`Detainee Request Segregation` == "Facility-Initiated")
 
+ice_nums <- ice |>
+  mutate(source = "ICE_public")
+
+
 #month-year
 df2 <- df |>
   mutate(placement_year = year(as.Date(`Placement Date`)),
@@ -22,6 +33,7 @@ df2 <- df |>
                                       placement_month),
          placement_fyq = quarter(as.Date(`Placement Date`), type="year.quarter",fiscal_start = 10))
 
+#subset of vulnerable placements 
 vuln <- df2 |>
   mutate(vulnerable = case_when(`Mental Illness` == "Mental Illness" ~ 1,
                                 `Mental Illness` == "Serious Mental Illness" ~ 1,
@@ -35,42 +47,7 @@ vuln <- df2 |>
                                 .default = 0)) |>
   filter(vulnerable==1)
 
-
-fy22_q1 <- vuln |>
-  filter(`Placement Date` >= "2021-10-01") |>
-  filter(`Placement Date` <= "2021-12-31") |>
-  group_by(`Placement Reason`)|>
-  count() |>
-  adorn_totals('row')
-
-fy22_q2 <- vuln |>
-  filter(`Placement Date` >= "2022-01-01") |>
-  filter(`Placement Date` <= "2022-03-31") |>
-  group_by(`Placement Reason`)|>
-  count()|>
-  adorn_totals('row')
-
-fy22_q3 <- vuln |>
-  filter(`Placement Date` >= "2022-04-01") |>
-  filter(`Placement Date` <= "2022-06-30") |>
-  group_by(`Placement Reason`)|>
-  count()|>
-  adorn_totals('row')
-
-fy22_q4 <- vuln |>
-  filter(`Placement Date` >= "2022-07-01") |>
-  filter(`Placement Date` <= "2022-09-30") |>
-  group_by(`Placement Reason`)|>
-  count()|>
-  adorn_totals('row')
-
-fy23_q1 <- vuln |>
-  filter(`Placement Date` >= "2022-10-01") |>
-  filter(`Placement Date` <= "2022-12-31") |>
-  group_by(`Placement Reason`)|>
-  count()|>
-  adorn_totals('row')
-
+#summarize foia dataset by quarter and filter only fy2022-fy2023q3
 all_vuln_fyq <- vuln |>
   group_by(placement_fyq)|>
   summarize(Placement_FOIA = n(),
@@ -86,27 +63,35 @@ all_vuln_fyq <- vuln |>
                                 placement_fyq == 2023.4 ~ "2023q4"),
          source = "FOIA")
 
-ice_nums <- tab |>
-  mutate(source = "ICE_public")
 
+#Merge FOIA and ICE-related data
 combined <- all_vuln_fyq |> 
   left_join(ice_nums, by=c("placement_fyq"="PlacementQ")) |>
   filter(!is.na(Placement_ICE)) 
 
-
+#Write
 write.csv(combined, "rep_fig2-3.csv", row.names = FALSE)
 
+
+#####Visualization
+
+#Convert placement number data to long format
 fig2_data <- combined |>
   select(c(placement_fyq, Placement_FOIA, Placement_ICE)) |>
   pivot_longer(!placement_fyq, names_to = "Source", values_to = "Placements")
 
+#Factor Source to bring proper order to visualization
 fig2_data$Source <- factor(fig2_data$Source, levels = c("Placement_ICE", "Placement_FOIA"))
+
+#Convert length of solitary confinement data to long format
 fig3_data <- combined |>
   select(c(placement_fyq, Length_FOIA, Length_ICE))|>
   pivot_longer(!placement_fyq, names_to = "Source", values_to = "Mean Length")
+
+#Factor Source to bring proper order to visualization
 fig3_data$Source <- factor(fig3_data$Source, levels = c("Length_ICE", "Length_FOIA"))
 
-
+#Visualize placement numbers
 fig2_plot <- fig2_data |>
   ggplot(aes(x=placement_fyq, y=Placements, group = Source, color = Source))+
   geom_line() +
@@ -117,6 +102,7 @@ fig2_plot <- fig2_data |>
   theme_classic() 
 fig2_plot
 
+#Visualize length of confinement average
 fig3_plot <- fig3_data |>
   ggplot(aes(x=placement_fyq, y=`Mean Length`, group = Source, color = Source))+
   geom_line() +

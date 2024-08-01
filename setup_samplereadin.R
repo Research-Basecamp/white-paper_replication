@@ -1,13 +1,18 @@
+#This file reads in foia dataset and then gets column frequency counts for each
+# field in the dataset
+
 library(tidyverse)
 library(janitor)
 library(readxl)
 library(stringi)
 library(openxlsx)
+
+#read in
 df <- read_excel('./SRMS spreadsheet 9.1.2018 - 9.1.2023 Redacted.xlsx')
 
 noms <- names(df)
 
-#input must be csv, output must be excel
+#Function to take in all columns, gets count, and then sends them to nested lists
 fyColumnCount <- function(input){
   
   # Mapper
