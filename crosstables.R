@@ -1,4 +1,4 @@
-##Creates crosstable of FOIA data from "Eternal Nightmares" report
+##Creates crosstable of FOIA data from "Endless Nightmares" report
 
 library(tidyverse)
 library(janitor)

@@ -1,4 +1,4 @@
-#validating page 14-15 from "Eternal Nightmares" and graphics 4 and 5
+#validating page 14-15 from "Endless Nightmares" and graphics 4 and 5
 library(tidyverse)
 library(janitor)
 library(readxl)
@@ -83,3 +83,4 @@ detplot <- det |>
   scale_y_continuous(limits = c(0,200))+
   theme_classic()
 detplot
+

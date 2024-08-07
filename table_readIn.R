@@ -1,4 +1,4 @@
-#replicate table and graphics 2 and 3 from "Eternal Nightmares" report
+#replicate table and graphics 2 and 3 from "Endless Nightmares" report
 
 library(ggthemes)
 library(tidyverse)
@@ -95,7 +95,7 @@ fig3_data$Source <- factor(fig3_data$Source, levels = c("Length_ICE", "Length_FO
 fig2_plot <- fig2_data |>
   ggplot(aes(x=placement_fyq, y=Placements, group = Source, color = Source))+
   geom_line() +
-  labs(title = "Replication of Figure 2 in the 'Eternal Nightmares' Report",
+  labs(title = "Replication of Figure 2 in the 'Endless Nightmares' Report",
        subtitle = "Number of Solitary Confinement Placements for Immigrants with Vulnerabilities")+
   scale_color_manual(values = c("red", "yellow"))+
   scale_y_continuous(limits = c(100, 425))+
@@ -106,7 +106,7 @@ fig2_plot
 fig3_plot <- fig3_data |>
   ggplot(aes(x=placement_fyq, y=`Mean Length`, group = Source, color = Source))+
   geom_line() +
-  labs(title = "Replication of Figure 3 in the 'Eternal Nightmares' Report",
+  labs(title = "Replication of Figure 3 in the 'Endless Nightmares' Report",
        subtitle = "Length of Solitary Confinement for Immigrants with Vulnerabilities")+
   scale_color_manual(values = c("red", "yellow"))+
   scale_y_continuous(limits = c(5, 22))+
